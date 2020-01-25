@@ -10,33 +10,33 @@ class UserService extends Service {
     return userInFo;
   }
 
-  //登入更新登入时间
-  async updateLoginTime(id){
-    const { app } = this;
-    //根据id查找
-    return await app.mysql.update('blog_user',{id, 'login_time': app.getTime()});
-  }
-  
-  //传入姓名和密码并保存
-  async register(registerInFo) {
-    const { app } = this;
-    return await app.mysql.insert('blog_user', {
-      username: registerInFo.username,
-      password: registerInFo.password,
-      email: registerInFo.email,
-      'register_time': app.getTime() ,
-      //默认等级为0
-      grade: '0',
-      //默认可以登入,用户可用
-      status: '1'
-    })
+  async getUsers() {
+    const {app} = this;
+    return await app.mysql.select('blog_user', {
+      where: {status: '1'},
+      columns: ['id', 'username', 'legal', 'grade', 'email', 'fans']
+    });
   }
 
-  //传入姓名查询更新 =》 密码，status
-  async registerSoft(id, password, email){
+  //改
+  async updateUser(newUserInFo){
     const { app } = this;
     //根据id查找
-    return await app.mysql.update('blog_user',{id, status: '1', password, email});
+    return await app.mysql.update('blog_user',newUserInFo);
+  }
+  
+  //增
+  async register(registerInFo) {
+    const { app } = this;
+    return await app.mysql.insert('blog_user', registerInFo);
+  }
+
+  //删
+  async delUserById(id) {
+    const {app} = this;
+    return await app.mysql.delete('blog_user', {
+      id
+    })
   }
 }
 

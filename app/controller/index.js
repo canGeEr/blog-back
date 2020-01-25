@@ -5,7 +5,11 @@ const Controller = require('egg').Controller;
 class IndexController extends Controller {
   async index() {
     const { ctx, app } = this;
-    await ctx.render('register.html')
+    const time = app.newStrTime();
+
+    ctx.body = {
+      time
+    }
   }
 }
 

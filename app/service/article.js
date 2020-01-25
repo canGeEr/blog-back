@@ -7,14 +7,23 @@ class ArticleService extends Service {
     //保存为草稿,一旦点击编写文章
     async saveArticle(articleInFo) {
         const { app } = this;
-        articleInFo['create_time'] = app.getTime();
-        articleInFo['edit_time'] = app.getTime();
+        articleInFo['create_time'] = app.newStrTime();
+        articleInFo['edit_time'] = app.newStrTime();
         return await app.mysql.insert('blog_article', articleInFo);
     }
-    async joinArticleUser(userInFO) {
+    async getArticles() {
         const { app } = this;
-        const username = userInFO.name;
-        return  await app.mysql.query('select * from blog_article');
+        return await app.mysql.query(`
+            select A.id , U.username as author, tags, look_times, hit_times, title, create_time 
+            from blog_article A inner join blog_user U 
+            on A.user_id = U.id `
+        )
+    }
+    async getArticleById(id) {
+        const {app} = this;
+        return await app.mysql.get('blog_article', {
+            id: id
+        })
     }
 }
 

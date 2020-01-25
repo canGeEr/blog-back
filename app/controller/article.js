@@ -41,8 +41,7 @@ class ArticleController extends Controller {
         if (userInFo) {
             const articleInFo = {};
             const filename = app.saveMd('article_md',  inFo.title, inFo.content);
-            console.log(filename) 
-            articleInFo['author_id'] = userInFo.id;
+            articleInFo['user_id'] = userInFo.id;
             articleInFo.title = inFo.title;
             articleInFo.tags = inFo.tags ? JSON.stringify(inFo.tags) : JSON.stringify([]);
             articleInFo.filename = filename;
@@ -56,8 +55,28 @@ class ArticleController extends Controller {
                 success: false
             }
         }
+    }
 
+    async getArticlesInFo() {
+        const {ctx, app, service} = this;
+        const articles = await service.article.getArticles();
+        ctx.body = {
+            success:true,
+            articles
+        }
+    }
 
+    async getArticleById() {
+        const {ctx, app, service} = this
+        const query = ctx.query;
+        const id = query.id
+        const articleInFo = await service.article.getArticleById(id)
+        const filename = articleInFo.filename
+        const content = app.readFile('article_md', filename)
+        ctx.body = {
+            success: true,
+            content
+        }
     }
 }
 
