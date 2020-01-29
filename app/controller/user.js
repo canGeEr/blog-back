@@ -80,48 +80,7 @@ class UserController extends Controller {
   }
 
 
-  //前台首页渲染数据
-  // async getUsers() {
-  //   const {ctx, app, service} = this;
-  //   let usersInFo = await service.user.getUsers();
-  //   usersInFo = usersInFo.filter((item) => {
-  //     return item.grade !== '2'
-  //   });
-  //   ctx.body = {
-  //     success: true,
-  //     usersInFo
-  //   }
-  // }
-
-  //后台删除成员
-  async delUserById() {
-    const {ctx, app, service} = this;
-    const ids = ctx.request.body.ids;
-    const idsLength = ids.length
-    for(let i=0; i<idsLength; i++) {
-      await service.user.delUserById(ids[i])
-    }
-    ctx.body = {
-      success: true,
-    }
-  }
-
-  //后台修改成员信息
-  async editUserPermission() {
-    const {ctx, app, service} = this;
-    const newUserInFo = ctx.request.body;
-    const result = await service.user.updateUser(newUserInFo);
-    if(result.affectedRows) {
-      ctx.body = {
-        success: true,
-      }
-    }else {
-      ctx.body = {
-        success: false,
-      }
-    }
-  }
-
+  
   //后台分页
   async getUsersByPageId() {
     const limit = 5;
@@ -138,6 +97,35 @@ class UserController extends Controller {
       usersInFo,
       pages,
       pagesArr
+    }
+  }
+
+  //后台修改成员权限
+  async editUserPermission() {
+    const {ctx, app, service} = this;
+    const newUserInFo = ctx.request.body;
+    const result = await service.user.updateUser(newUserInFo);
+    if(result.affectedRows) {
+      ctx.body = {
+        success: true,
+      }
+    }else {
+      ctx.body = {
+        success: false,
+      }
+    }
+  }
+
+  //后台删除成员
+  async delUserById() {
+    const {ctx, app, service} = this;
+    const ids = ctx.request.body.ids;
+    const idsLength = ids.length
+    for(let i=0; i<idsLength; i++) {
+      await service.user.delUserById(ids[i])
+    }
+    ctx.body = {
+      success: true,
     }
   }
 }

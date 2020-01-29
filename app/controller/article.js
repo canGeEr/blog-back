@@ -1,7 +1,7 @@
 'use strict';
 
+//将大部分复杂文件操作全部转给了APP对象去操作
 const Controller = require('egg').Controller;
-const fs = require('mz/fs');
 const path = require('path');
 const icon = require('iconv-lite');
 
@@ -117,7 +117,7 @@ class ArticleController extends Controller {
         }
     }
 
-    //修改文章权限
+    //后台修改文章权限
     async editArticlePermission() {
         const {ctx, app, service} = this;
         const newArticleInFo = ctx.request.body;
