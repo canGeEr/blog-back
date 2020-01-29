@@ -7,12 +7,15 @@ module.exports = {
   newStrTime() {
     return (new Date()).valueOf() + '';
   },
+  
   random(round, end) {
     return  Math.floor(Math.random() * round + end);
   },
+
   getFilePath(pro) {
     return path.resolve(this.config.filePath[pro])
   },
+
   uploadOne(uploadpath, fileInFo, ctx) {
     const fullname = this.random(100, 1) + this.newStrTime() + fileInFo.filename;
     const fullPath = path.join(this.getFilePath(uploadpath), fullname);
@@ -21,6 +24,7 @@ module.exports = {
     ctx.cleanupRequestFiles()
     return fullPath
   },
+
   uploadMulti(uploadpath, filesInFo, ctx) {
     const filesPath = []
     filesInFo.forEach(fileInFo => {
@@ -29,6 +33,7 @@ module.exports = {
     });
     return filesPath
   },
+
   /* @params savePath 存储路径, filename文件名,  content内容*/
   saveMd(savePath, title, content) {
     const filename = this.random(100, 1) + this.newStrTime() + title + '.md';
@@ -36,28 +41,41 @@ module.exports = {
     fs.writeFileSync(fillPath, content);
     return filename;
   },
+
   readFile(savePath, filename) {
     const fillPath = path.join(this.getFilePath(savePath), filename); 
     const content = fs.readFileSync(fillPath, 'utf8');
     return content
+  },
+
+  delImage(savePath, filename) {
+    const fillPath = path.join(this.getFilePath(savePath), filename);
+    fs.unlinkSync(fillPath)
+  },
+
+  //专门为了给分页写的方法  offset 第 位
+  paging(pages, defaultPages, p_id, offset) {
+    let pagesArr = []; 
+    if(offset > defaultPages) throw error('offset 不能超过 defaultPages');
+    const rightOffset = defaultPages - offset;
+    if(pages <= defaultPages) {
+      for(let i=1; i<=pages; i++) {
+        pagesArr.push(i)
+      }
+    }else if(p_id <= offset) {
+      for(let i=1; i<=defaultPages; i++) {
+        pagesArr.push(i)
+      }
+    }else if(pages - p_id <= rightOffset -1) {
+      for(let i=pages-defaultPages + 1; i<=pages; i++) {
+        pagesArr.push(i)
+      }
+    }else {
+      for(let i= p_id - offset + 1; i<= p_id + rightOffset ; i++) {
+        pagesArr.push(i)
+      }
+    }
+
+    return pagesArr
   }
-  // sessionStore: {
-  //   async get(key) {
-  //     const res = await app.redis.get(key);
-  //     if (!res) return null;
-  //     return JSON.parse(res);
-  //   },
-
-  //   async set(key, value, maxAge) {
-  //     // maxAge not present means session cookies
-  //     // we can't exactly know the maxAge and just set an appropriate value like one day
-  //     if (!maxAge) maxAge = 24 * 60 * 60 * 1000;
-  //     value = JSON.stringify(value);
-  //     await app.redis.set(key, value, 'PX', maxAge);
-  //   },
-
-  //   async destroy(key) {
-  //     await app.redis.del(key);
-  //   },
-  // }
 };

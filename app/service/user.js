@@ -10,12 +10,22 @@ class UserService extends Service {
     return userInFo;
   }
 
-  async getUsers() {
+  async getUsers(limit, offset) {
     const {app} = this;
-    return await app.mysql.select('blog_user', {
-      where: {status: '1'},
-      columns: ['id', 'username', 'legal', 'grade', 'email', 'fans']
-    });
+    //这里减了admin的一条
+    const recordsCount = (await app.mysql.query(' select count(*) as count from blog_user '))[0].count - 1;
+    
+    let pages = recordsCount / limit
+    pages = recordsCount % limit ? Math.floor(pages) + 1 : pages
+
+    const usersInFo = await app.mysql.query(`select id, username,grade, legal, status from
+      blog_user where id != 1 limit ${limit} offset ${offset}
+    `)
+
+    return {
+      usersInFo,
+      pages
+    }
   }
 
   //改

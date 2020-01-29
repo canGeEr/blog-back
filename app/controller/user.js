@@ -80,34 +80,34 @@ class UserController extends Controller {
   }
 
 
-  async getUsers() {
-    const {ctx, app, service} = this;
-    let usersInFo = await service.user.getUsers();
-    usersInFo = usersInFo.filter((item) => {
-      return item.grade !== '2'
-    });
-    ctx.body = {
-      success: true,
-      usersInFo
-    }
-  }
+  //前台首页渲染数据
+  // async getUsers() {
+  //   const {ctx, app, service} = this;
+  //   let usersInFo = await service.user.getUsers();
+  //   usersInFo = usersInFo.filter((item) => {
+  //     return item.grade !== '2'
+  //   });
+  //   ctx.body = {
+  //     success: true,
+  //     usersInFo
+  //   }
+  // }
 
+  //后台删除成员
   async delUserById() {
     const {ctx, app, service} = this;
-    const id = ctx.request.body.id;
-    const result = await service.user.delUserById(id);
-    if(result.affectedRows) {
-      ctx.body = {
-        success: true,
-      }
-    }else {
-      ctx.body = {
-        success: false,
-      }
+    const ids = ctx.request.body.ids;
+    const idsLength = ids.length
+    for(let i=0; i<idsLength; i++) {
+      await service.user.delUserById(ids[i])
+    }
+    ctx.body = {
+      success: true,
     }
   }
 
-  async editUserGrade () {
+  //后台修改成员信息
+  async editUserPermission() {
     const {ctx, app, service} = this;
     const newUserInFo = ctx.request.body;
     const result = await service.user.updateUser(newUserInFo);
@@ -121,7 +121,25 @@ class UserController extends Controller {
       }
     }
   }
-  
+
+  //后台分页
+  async getUsersByPageId() {
+    const limit = 5;
+    const {ctx, app, service} = this;
+    const p_id = ctx.dataTypeChange(ctx.request.body, 'id').id; 
+    const offset = (p_id - 1) * limit;
+    //如果我们只有两页，但是我们一直打算渲染5页
+    const defaultPages = 5;
+    const data = await service.user.getUsers(limit, offset)
+    const {pages, usersInFo} = data;
+    const pagesArr = app.paging(pages, defaultPages, p_id, 3)
+    ctx.body = {
+      success: true,
+      usersInFo,
+      pages,
+      pagesArr
+    }
+  }
 }
 
 module.exports = UserController;

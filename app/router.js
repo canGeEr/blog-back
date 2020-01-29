@@ -5,7 +5,6 @@
  */
 module.exports = app => {
   const { router, controller } = app;
-
   /**
    * 
    * 渲染数据
@@ -25,7 +24,10 @@ module.exports = app => {
   router.post('/article/saveImage', controller.article.saveImage);
   //博文保存
   router.post('/article/saveArticle', controller.article.saveArticle);
-  
+  //修改文章权限
+  router.post('/user/editArticlePermission', controller.article.editArticlePermission);
+  //分页获取文章信息
+  router.post('/article/getArticlesByPageId', controller.article.getArticlesByPageId);
   
 
   /*
@@ -39,11 +41,11 @@ module.exports = app => {
   /* 
    * 用户
    */
-  //获取用户全表
-  router.post('/user/getUsers', controller.user.getUsers);
+  //获取用户全表 ,暂时移除 router.post('/user/getUsers', controller.user.getUsers);
   //删除用户
   router.post('/user/delUserById', controller.user.delUserById);
-  //许可用户权限
-  router.post('/user/editUserGrade', controller.user.editUserGrade);
   //修改用户权限
+  router.post('/user/editUserPermission', controller.user.editUserPermission);
+  //分页获取用户信息
+  router.post('/user/getUsersByPageId', controller.user.getUsersByPageId);
 };
