@@ -5,6 +5,8 @@
  */
 module.exports = app => {
   const { router, controller } = app;
+
+  router.get('/tag', controller.tag.getFrontTags);
   /**
    * 
    * 渲染数据
