@@ -6,6 +6,11 @@ const path = require('path');
 const icon = require('iconv-lite');
 
 class ArticleController extends Controller {
+    /**
+     * 前台操作
+     */
+
+
     //保存文章的图片
     async saveImage() {
         const {
@@ -42,7 +47,7 @@ class ArticleController extends Controller {
         const userInFo = await service.user.checkname(inFo.username);
         if (userInFo) {
             const articleInFo = {};
-            const filename = app.saveMd('article_md',  inFo.title, inFo.content);
+            const filename = app.saveMd('article_md', inFo.title, inFo.content);
             articleInFo['user_id'] = userInFo.id;
             articleInFo.title = inFo.title;
             articleInFo.tags = inFo.tags ? JSON.stringify(inFo.tags) : JSON.stringify([]);
@@ -51,12 +56,12 @@ class ArticleController extends Controller {
             //处理图片逻辑
             const imagesArr = inFo.images
             const images = []
-            if(imagesArr) {
+            if (imagesArr) {
                 imagesArr.forEach(item => {
                     const filename = path.basename(item.path)
-                    if(item.legal === 'false') {
+                    if (item.legal === 'false') {
                         app.delImage('article_images', filename)
-                    }else {
+                    } else {
                         images.push(filename)
                     }
                 });
@@ -66,7 +71,7 @@ class ArticleController extends Controller {
             ctx.body = {
                 success: true
             }
-        }else {
+        } else {
             ctx.body = {
                 success: false
             }
@@ -75,17 +80,25 @@ class ArticleController extends Controller {
 
     //前台获取全部文章信息展示
     async getArticlesInFo() {
-        const {ctx, app, service} = this;
+        const {
+            ctx,
+            app,
+            service
+        } = this;
         const articles = await service.article.getArticles();
         ctx.body = {
-            success:true,
+            success: true,
             articles
         }
     }
 
     //查看单篇文章
     async getArticleById() {
-        const {ctx, app, service} = this
+        const {
+            ctx,
+            app,
+            service
+        } = this
         const query = ctx.query;
         const id = query.id
         const articleInFo = await service.article.getArticleById(id)
@@ -97,18 +110,60 @@ class ArticleController extends Controller {
         }
     }
 
-
-    //分页展示文章
-    async getArticlesByPageId () {
+    // 前台根据用户uId和pId获取分页
+    async getUserArticlesByPageId() {
+        const {
+            ctx,
+            app,
+            service
+        } = this;
+        const {
+            pId,
+            uId
+        } = ctx.dataTypeChange(ctx.request.body, 'pId', 'uId');
         const limit = 5;
-        const {ctx, app, service} = this;
-        const p_id = ctx.dataTypeChange(ctx.request.body, 'id').id; 
-        const offset = (p_id - 1) * limit;
+        const offset = (pId - 1) * limit;
+        //如果我们只有两页，但是我们一直打算渲染5页
+        const defaultPages = 5;
+        const data = await service.article.getArticlesByPageId(limit, offset, {
+            uId: `and U.id = ${uId}`,
+            columns: [' ','A.look_times', 'A.hit_times']
+        })
+        const {
+            pages,
+            articleInFo
+        } = data;
+        const pagesArr = app.paging(pages, defaultPages, pId, 3)
+        ctx.body = {
+            success: true,
+            articleInFo,
+            pages,
+            pagesArr
+        }
+    }
+
+
+    /**
+     *  后台操作
+     */
+    //分页展示文章
+    async getArticlesByPageId() {
+        const limit = 5;
+        const {
+            ctx,
+            app,
+            service
+        } = this;
+        const pId = ctx.dataTypeChange(ctx.request.body, 'pId').pId;
+        const offset = (pId - 1) * limit;
         //如果我们只有两页，但是我们一直打算渲染5页
         const defaultPages = 5;
         const data = await service.article.getArticlesByPageId(limit, offset)
-        const {pages, articleInFo} = data;
-        const pagesArr = app.paging(pages, defaultPages, p_id, 3)
+        const {
+            pages,
+            articleInFo
+        } = data;
+        const pagesArr = app.paging(pages, defaultPages, pId, 3)
         ctx.body = {
             success: true,
             articleInFo,
@@ -119,19 +174,29 @@ class ArticleController extends Controller {
 
     //后台修改文章权限
     async editArticlePermission() {
-        const {ctx, app, service} = this;
+        const {
+            ctx,
+            app,
+            service
+        } = this;
         const newArticleInFo = ctx.request.body;
         const result = await service.article.updateArticle(newArticleInFo);
-        if(result.affectedRows) {
-          ctx.body = {
-            success: true,
-          }
-        }else {
-          ctx.body = {
-            success: false,
-          }
+        if (result.affectedRows) {
+            ctx.body = {
+                success: true,
+            }
+        } else {
+            ctx.body = {
+                success: false,
+            }
         }
-      }
+    }
+
+
+
+
+
+
 }
 
 module.exports = ArticleController;

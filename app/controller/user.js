@@ -23,7 +23,8 @@ class UserController extends Controller {
           username: sqlUserInFo.username,
           grade: sqlUserInFo.grade,
           id: sqlUserInFo.id,
-          legal: sqlUserInFo.legal
+          legal: sqlUserInFo.legal,
+          fans: sqlUserInFo.fans
         }
       }
     }else {

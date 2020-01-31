@@ -77,5 +77,26 @@ module.exports = {
     }
 
     return pagesArr
+  },
+
+
+  //暴力传递
+  extendForce(targetObj, resourceObj) {
+    if(typeof resourceObj !== 'object') return;
+    Object.getOwnPropertyNames(resourceObj).forEach((proname, index)=>{
+      targetObj[proname] = resourceObj[proname]
+    })
+  },
+
+  //传递
+  extend(targetObj, resourceObj) {
+    if(typeof resourceObj !== 'object') return;
+    const names = Object.getOwnPropertyNames(resourceObj);
+    const namesLength = names.length;
+    for(let i=0; i<namesLength; i++ ) {
+      const name = names[i];
+      if(name in targetObj) continue;
+      else targetObj[name] = resourceObj[name]
+    }
   }
 };

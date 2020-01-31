@@ -6,15 +6,23 @@
 module.exports = app => {
   const { router, controller } = app;
 
-  router.get('/tag', controller.tag.getFrontTags);
+  router.get('/', controller.index.index)
+  
+
+  //博主操作
+  //博主获取自己文章
+  router.post('/blogger/article', controller.article.getUserArticlesByPageId);
+
+
   /**
    * 
    * 渲染数据
    */
   //博文获取
   router.get('/article/getArticleById', controller.article.getArticleById);
-  //加载首页
-  router.get('/', controller.index.index);
+  
+  //标签页获取
+  router.post('/tags', controller.tag.getFrontTags);
 
   //首页加载博文列表
   router.post('/article/getArticlesInFo', controller.article.getArticlesInFo);

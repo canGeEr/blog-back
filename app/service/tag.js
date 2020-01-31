@@ -2,42 +2,38 @@
 
 const Service = require('egg').Service;
 
+
+
 class TagService extends Service {
-    //初始化标签列表 前台
-   async getTags(bool) {
-    const {app} = this
-    let flag = null;
-    switch(bool) {
-        case 'front' : flag = true;
-            break;
-        case 'back' : flag =  false ;
-            break;
-        default : throw new Error('传入的参数要是 front 或者 back ');
-            break;
-    }
 
-    const tagClassesWhere= {
+    //获取标签树
+    async getTags(tagClassWhere, tagWhere) {
+        const {
+            app
+        } = this
+        //设置默认标签类的条件
+        const TAG_CLASS_DEFAULT_WHERE = {};
+        app.extendForce(TAG_CLASS_DEFAULT_WHERE, tagClassWhere);
+        // 查询标签类
+        const tagClasses = await app.mysql.select('blog_tagclass', {
+            where: TAG_CLASS_DEFAULT_WHERE
+        });
+        //组合成标签树
+        const tagRoot = {}
+        for (let [key, value] of tagClasses.entries()) {
+            const tagclass = value;
 
-    }
-    flag ? tagClassesWhere.status = '1' : null;
-    const tagClasses = await app.mysql.select('blog_tagclass',{
-        where: tagClassesWhere
-    });
+            const TAG_DEFAULT_WHERE = {
+                'class_id': tagclass.id,
+            }
+            app.extendForce(TAG_DEFAULT_WHERE, tagWhere)
 
-    const tagRoot = {}
-    const tagClassesLength = tagClasses.length;
-    for(let i=0; i<tagClassesLength; i++) {
-        const tagclass = tagClasses[i];
-        const tagRootWhere = {
-            'class_id': tagclass.id,
+            tagRoot[tagclass.name] = await app.mysql.select('blog_tag', {
+                where: TAG_DEFAULT_WHERE
+            })
         }
-        flag ? tagRootWhere.status = '1' : null;
-        tagRoot[tagclass.name] =  await app.mysql.select('blog_tag', {
-            where: tagRootWhere
-        })
+        return tagRoot
     }
-    return tagRoot
-   }
 }
 
 module.exports = TagService;
