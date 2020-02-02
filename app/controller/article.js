@@ -10,7 +10,6 @@ class ArticleController extends Controller {
      * 前台操作
      */
 
-
     //保存文章的图片
     async saveImage() {
         const {
@@ -34,6 +33,28 @@ class ArticleController extends Controller {
         }
 
     }
+    //删除无用图片
+    async delImage() {
+        const {
+            ctx,
+            service,
+            config,
+            app
+        } = this;
+        const images = ctx.request.body.images;
+
+        if(images) {
+            images.forEach((image)=>{
+                const filename = path.basename(image)
+                app.delFile('article_images', filename)
+            })
+        }
+        
+        ctx.body = {
+            success: true
+        }
+
+    }
 
     //保存文章
     async saveArticle() {
@@ -44,6 +65,7 @@ class ArticleController extends Controller {
             app
         } = this;
         const inFo = ctx.request.body;
+
         const userInFo = await service.user.checkname(inFo.username);
         if (userInFo) {
             const articleInFo = {};
@@ -52,21 +74,25 @@ class ArticleController extends Controller {
             articleInFo.title = inFo.title;
             articleInFo.tags = inFo.tags ? JSON.stringify(inFo.tags) : JSON.stringify([]);
             articleInFo.filename = filename;
-
             //处理图片逻辑
-            const imagesArr = inFo.images
-            const images = []
-            if (imagesArr) {
-                imagesArr.forEach(item => {
-                    const filename = path.basename(item.path)
-                    if (item.legal === 'false') {
-                        app.delImage('article_images', filename)
-                    } else {
-                        images.push(filename)
-                    }
-                });
+            // const imagesArr = inFo.images
+            // if (imagesArr) {
+            //     imagesArr.forEach(item => {
+            //         const filename = path.basename(item.path)
+            //         if (item.legal === 'false') {
+            //             app.delFile('article_images', filename)
+            //         } else {
+            //             images.push(filename)
+            //         }
+            //     });
+            // }
+            let images =null;
+            if(inFo.images) {
+                images = inFo.images.map((image)=>{
+                    return path.basename(image)
+                })
             }
-            articleInFo.images = JSON.stringify(images)
+            articleInFo.images = images ? JSON.stringify(images) : JSON.stringify([]);
             await service.article.saveArticle(articleInFo);
             ctx.body = {
                 success: true
@@ -75,6 +101,42 @@ class ArticleController extends Controller {
             ctx.body = {
                 success: false
             }
+        }
+    }
+
+    //更新文章
+    async updateArticle() {
+        const {
+            ctx,
+            service,
+            config,
+            app
+        } = this;
+        const inFo = ctx.request.body;
+
+        //通过id拿到对于的filename
+        const filename = (await service.article.getArticleById(inFo.id)).filename
+        //更新文件md
+        app.updateFile('article_md', filename, inFo.content);
+
+
+        let images =null;
+        if(inFo.images) {
+            images = inFo.images.map((image)=>{
+                return path.basename(image)
+            })
+        }
+
+        inFo.images = images ? JSON.stringify(images) : JSON.stringify([]);
+
+        delete inFo.content
+        
+        //标签处理
+        inFo.tags = inFo.tags ? JSON.stringify(inFo.tags) : JSON.stringify([]);
+
+        await service.article.updateArticle(inFo);
+        ctx.body = {
+            success: true
         }
     }
 
@@ -104,9 +166,19 @@ class ArticleController extends Controller {
         const articleInFo = await service.article.getArticleById(id)
         const filename = articleInFo.filename
         const content = app.readFile('article_md', filename)
+
+        const images = JSON.parse(articleInFo.images).map((image)=>{
+            const filePath = path.join(app.getFilePath('article_images') ,image);
+            return  path.relative('app', filePath).replace(/\\/g, '/'); 
+        })
         ctx.body = {
             success: true,
-            content
+            content,
+            articleInFo: {
+                images: images,
+                title: articleInFo.title,
+                tags: articleInFo.tags
+            }
         }
     }
 
@@ -192,9 +264,52 @@ class ArticleController extends Controller {
         }
     }
 
+    //根据文章id删除文章，注意一起删除文章文件和文章图片
+    async delArticleById() {
+        //先获取文章信息
+        const {ctx, service, app} = this;
+        const ids = ctx.request.body.ids;
+        let flag = 1;
 
+        for(let value of ids.values()) {
+            const id = value;
+            
+            const articleInFo = await service.article.getArticleById(id);
 
+            if(!articleInFo) {
+                ctx.body = {
+                    success:false,
+                    msg: 'id is not exit'
+                }
+                return;
+            }
+    
+            //删除
+            app.delFile('article_md', articleInFo.filename);
+    
+            const images = JSON.parse(articleInFo.images);
+            images.forEach((image)=>{
+                app.delFile('article_images', image);
+            })
+    
+            //删除数据库记录
+            const result = await service.article.delArticleById(id);
+            if(!result.affectedRows){
+                flag = 0;
+                break;
+            }
+        }
 
+        if (flag) {
+            ctx.body = {
+                success: true,
+            }
+        } else {
+            ctx.body = {
+                success: false,
+            }
+        }
+    }
 
 
 }

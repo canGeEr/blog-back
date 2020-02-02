@@ -42,15 +42,24 @@ module.exports = {
     return filename;
   },
 
+  updateFile(savePath, filename, content) {
+    const fillPath = path.join(this.getFilePath(savePath), filename);
+    fs.writeFileSync(fillPath, content);
+  },
+
   readFile(savePath, filename) {
     const fillPath = path.join(this.getFilePath(savePath), filename); 
     const content = fs.readFileSync(fillPath, 'utf8');
     return content
   },
 
-  delImage(savePath, filename) {
+  delFile(savePath, filename) {
     const fillPath = path.join(this.getFilePath(savePath), filename);
-    fs.unlinkSync(fillPath)
+    try {
+      return fs.unlinkSync(fillPath)
+    }catch(e) {
+      console.log('你要删除的文件不存在');
+    }
   },
 
   //专门为了给分页写的方法  offset 第 位

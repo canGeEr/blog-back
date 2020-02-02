@@ -4,10 +4,13 @@
  * @param {Egg.Application} app - egg application
  */
 module.exports = app => {
-  const { router, controller } = app;
+  const {
+    router,
+    controller
+  } = app;
 
   router.get('/', controller.index.index)
-  
+
 
   //博主操作
   //博主获取自己文章
@@ -20,25 +23,35 @@ module.exports = app => {
    */
   //博文获取
   router.get('/article/getArticleById', controller.article.getArticleById);
-  
+
   //标签页获取
   router.post('/tags', controller.tag.getFrontTags);
 
   //首页加载博文列表
   router.post('/article/getArticlesInFo', controller.article.getArticlesInFo);
 
+
+  //博文删除
+  router.post('/article/delArticleById', controller.article.delArticleById);
+  
+  //博文更新
+  router.post('/article/updateArticle', controller.article.updateArticle);
   /**
    * 博客内容处理
    */
   //博文图片上传
   router.post('/article/saveImage', controller.article.saveImage);
+
+  //博文图片删除
+  router.post('/article/delImage', controller.article.delImage);
+
   //博文保存
   router.post('/article/saveArticle', controller.article.saveArticle);
   //修改文章权限
   router.post('/user/editArticlePermission', controller.article.editArticlePermission);
   //分页获取文章信息
   router.post('/article/getArticlesByPageId', controller.article.getArticlesByPageId);
-  
+
 
   /*
    * 登入 注册
